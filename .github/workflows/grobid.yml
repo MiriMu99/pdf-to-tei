@@ -10,7 +10,7 @@ jobs:
 
     services:
       grobid:
-        image: lfoppiano/grobid:0.8.1
+        image: grobid/grobid:0.8.1-crf
         ports:
           - 8070:8070
         options: >-
