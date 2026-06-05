@@ -16,19 +16,28 @@ jobs:
           - 8070:8070
         options: >-
           --memory=4g
+          --health-cmd "curl -f http://localhost:8070/api/isalive || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+          --health-start-period=120s
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Warte bis GROBID bereit ist
         run: |
-          for i in {1..30}; do
+          echo "Warte auf GROBID..."
+          for i in {1..60}; do
             if curl -sf http://localhost:8070/api/isalive; then
               echo "GROBID läuft!"
-              break
+              exit 0
             fi
+            echo "Versuch $i/60..."
             sleep 10
           done
+          echo "GROBID nicht erreichbar"
+          exit 1
 
       - name: PDFs umwandeln
         run: |
