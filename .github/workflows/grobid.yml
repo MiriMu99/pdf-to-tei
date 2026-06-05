@@ -1,0 +1,48 @@
+name: PDF to TEI
+
+on:
+  push:
+    paths:
+      - 'pdfs/**'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    services:
+      grobid:
+        image: lfoppiano/grobid:0.8.1
+        ports:
+          - 8070:8070
+        options: >-
+          --memory=4g
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Warte bis GROBID bereit ist
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:8070/api/isalive; then
+              echo "GROBID läuft!"
+              break
+            fi
+            sleep 10
+          done
+
+      - name: PDFs umwandeln
+        run: |
+          mkdir -p tei-output
+          for pdf in pdfs/*.pdf; do
+            filename=$(basename "$pdf" .pdf)
+            curl -X POST http://localhost:8070/api/processFulltextDocument \
+              -F "input=@$pdf" \
+              -o "tei-output/$filename.xml"
+            echo "Fertig: $filename.xml"
+          done
+
+      - name: TEI XMLs hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: tei-xmls
+          path: tei-output/
