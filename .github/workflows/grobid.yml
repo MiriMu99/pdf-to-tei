@@ -2,8 +2,7 @@ name: PDF to TEI
 
 on:
   push:
-    paths:
-      - 'pdfs/**'
+  workflow_dispatch:
 
 jobs:
   convert:
